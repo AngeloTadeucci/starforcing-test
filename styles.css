@@ -462,14 +462,6 @@ button.is-running {
   margin: 0 6px;
 }
 
-.colophon .fineprint {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.04em;
-  color: var(--muted-2);
-  margin: 18px 0 0;
-}
-
 @media (max-width: 540px) {
   .source {
     grid-template-columns: 1fr;
