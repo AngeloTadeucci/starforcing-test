@@ -25,7 +25,7 @@
       event:        $("event").value,
       starCatching: $("starCatching").checked,
       safeguard:    $("safeguard").checked,
-      noBoom22:     $("noBoom22").checked,
+      enhanceMode:  parseInt($("enhanceMode").value, 10),
     };
   }
 
@@ -174,7 +174,28 @@
     }
   }
 
+  const ENHANCE_MODE_LABELS = {
+    1: "Mode 1 — 1× cost · baseline (uses Safeguard)",
+    2: "Mode 2 — 1.5× / 2× cost",
+    3: "Mode 3 — 2.5× / 3.5× cost",
+    4: "Mode 4 — 3× / 6.5× cost · no boom",
+  };
+
+  function syncEnhanceMode() {
+    const v = parseInt($("enhanceMode").value, 10) || 1;
+    $("enhanceModeLabel").textContent = ENHANCE_MODE_LABELS[v] || ENHANCE_MODE_LABELS[1];
+
+    // Modes 2–4 carry their own boom protection and override Safeguard, so grey
+    // it out. Mode 1 (baseline) leaves it active — classic behaviour.
+    const overrides = v >= 2;
+    const sg = $("safeguard");
+    sg.disabled = overrides;
+    sg.closest(".check").classList.toggle("is-disabled", overrides);
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     $("sf-form").addEventListener("submit", onSubmit);
+    $("enhanceMode").addEventListener("input", syncEnhanceMode);
+    syncEnhanceMode();
   });
 })();

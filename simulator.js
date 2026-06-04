@@ -17,26 +17,52 @@
     return 20;
   }
 
+  // Returns the Enhancement Mode entry { mult, success, boom } for this star, or
+  // null when the new system does not apply. Only modes 2–4 engage it (and
+  // override Safeguard). Mode 0 (off) and Mode 1 both fall through to the classic
+  // path — Mode 1 is 1× cost with vanilla rates, so it is identical to "off" and
+  // still honours the Safeguard toggle. Stars outside 15–21 also return null.
+  function enhanceEntry(currentStar, opts) {
+    const mode = opts.enhanceMode;
+    if (!mode || mode < 2 || mode > 4) return null;
+    const table = global.ENHANCE_MODE[currentStar];
+    return table ? table[mode - 1] : null;
+  }
+
   function applyRateModifiers(currentStar, opts) {
-    const base = global.GMS_RATES[currentStar];
-    let s = base[0], m = base[1], b = base[2];
+    const em = enhanceEntry(currentStar, opts);
+    let s, m, b;
 
-    // Boom reduction (Shining Star Force or standalone): 30% of boom moves to maintain, at <= 21 stars.
-    if (
-      (opts.event === "boomReduction" || opts.event === "shiningStarForce") &&
-      currentStar <= 21
-    ) {
-      m += b * 0.3;
-      b *= 0.7;
-    }
+    if (em) {
+      // New system: the mode entry is authoritative for this star's base triple.
+      // Classic Safeguard and event-based boom reduction do not apply on top —
+      // in-game, Safeguard has no effect once an Enhancement Mode is engaged.
+      s = em.success;
+      b = em.boom;
+      m = 1 - s - b;
+    } else {
+      const base = global.GMS_RATES[currentStar];
+      s = base[0];
+      m = base[1];
+      b = base[2];
 
-    const sgActive =
-      opts.safeguard &&
-      currentStar >= 15 && currentStar <= 17 &&
-      !(opts.event === "fivetenfifteen" && currentStar === 15);
-    if (sgActive) {
-      m += b;
-      b = 0;
+      // Boom reduction (Shining Star Force or standalone): 30% of boom moves to maintain, at <= 21 stars.
+      if (
+        (opts.event === "boomReduction" || opts.event === "shiningStarForce") &&
+        currentStar <= 21
+      ) {
+        m += b * 0.3;
+        b *= 0.7;
+      }
+
+      const sgActive =
+        opts.safeguard &&
+        currentStar >= 15 && currentStar <= 17 &&
+        !(opts.event === "fivetenfifteen" && currentStar === 15);
+      if (sgActive) {
+        m += b;
+        b = 0;
+      }
     }
 
     if (opts.starCatching) {
@@ -51,7 +77,9 @@
   }
 
   function costMultiplier(currentStar, opts) {
-    let mult = 1;
+    const em = enhanceEntry(currentStar, opts);
+    // New system replaces the Safeguard +2 surcharge with the mode's own multiplier.
+    let mult = em ? em.mult : 1;
 
     if (currentStar <= 15) {
       if (opts.mvp === "silver")  mult -= 0.03;
@@ -60,18 +88,19 @@
     }
     if (opts.event === "thirtyOff" || opts.event === "shiningStarForce") mult -= 0.30;
 
-    const sgActive =
-      opts.safeguard &&
-      currentStar >= 15 && currentStar <= 17 &&
-      !(opts.event === "fivetenfifteen" && currentStar === 15);
-    if (sgActive) mult += 2;
+    if (!em) {
+      const sgActive =
+        opts.safeguard &&
+        currentStar >= 15 && currentStar <= 17 &&
+        !(opts.event === "fivetenfifteen" && currentStar === 15);
+      if (sgActive) mult += 2;
+    }
 
     return mult;
   }
 
   function simulateOnce(currentStar, targetStar, itemLevel, opts) {
-    let star = opts.noBoom22 && currentStar < 22 ? 22 : currentStar;
-    const floor = opts.noBoom22 ? 22 : 0;
+    let star = currentStar;
     let totalCost = 0;
     let attempts = 0;
     let booms = 0;
@@ -97,7 +126,7 @@
       } else if (r < s + m) {
         // maintain
       } else {
-        star = Math.max(floor, boomDropStar(star));
+        star = boomDropStar(star);
         booms += 1;
       }
     }
@@ -152,9 +181,9 @@
       const opts = {
         starCatching: !!input.starCatching,
         safeguard:    !!input.safeguard,
-        noBoom22:     !!input.noBoom22,
         mvp:          input.mvp || "none",
         event:        input.event || "none",
+        enhanceMode:  input.enhanceMode || 0,
       };
 
       const costs = new Array(trials);
@@ -214,6 +243,7 @@
   global.SF = global.SF || {};
   global.SF.baseCost = baseCost;
   global.SF.boomDropStar = boomDropStar;
+  global.SF.enhanceEntry = enhanceEntry;
   global.SF.applyRateModifiers = applyRateModifiers;
   global.SF.costMultiplier = costMultiplier;
   global.SF.simulateOnce = simulateOnce;

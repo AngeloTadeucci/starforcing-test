@@ -53,6 +53,66 @@
   COST_COEFS[21] = { divisor: 20000, expo: 2.7, mult: 8 / 5 };
   for (let s = 22; s <= 29; s++) COST_COEFS[s] = { divisor: 20000, expo: 2.7, mult: 1 };
 
+  // Enhancement Mode — the newer GMS star-force system (replaces the Safeguard
+  // model in-game for stars 15→21). A 1–4 slider trades higher meso cost for a
+  // lower destroy chance. Modes do not exist below 15★ (no boom) or at 22★+.
+  //
+  // Each entry, indexed by (mode - 1), carries:
+  //   mult    — cost multiplier applied on top of the unchanged baseCost() formula
+  //   success — success chance (the in-game displayed rate, before Star Catching)
+  //   boom    — destroy chance; maintain = 1 - success - boom
+  //
+  // Mode 1 reproduces the vanilla GMS_RATES and base cost exactly (verified
+  // against in-game values at item levels 160 and 200). Values 2–4 are measured.
+  // Cost multipliers cluster into two tiers: 1/1.5/2.5/3 (15–17) and
+  // 1/2/3.5/6.5 (18–21). Rates are stored verbatim — the per-mode reductions are
+  // not a clean closed form, so a lookup table is the accurate representation.
+  const ENHANCE_MODE = {
+    15: [
+      { mult: 1,   success: 0.30, boom: 0.021 },
+      { mult: 1.5, success: 0.30, boom: 0.014 },
+      { mult: 2.5, success: 0.30, boom: 0.007 },
+      { mult: 3,   success: 0.30, boom: 0     },
+    ],
+    16: [
+      { mult: 1,   success: 0.30, boom: 0.021 },
+      { mult: 1.5, success: 0.30, boom: 0.014 },
+      { mult: 2.5, success: 0.30, boom: 0.007 },
+      { mult: 3,   success: 0.30, boom: 0     },
+    ],
+    17: [
+      { mult: 1,   success: 0.15, boom: 0.068  },
+      { mult: 1.5, success: 0.15, boom: 0.0425 },
+      { mult: 2.5, success: 0.15, boom: 0.017  },
+      { mult: 3,   success: 0.15, boom: 0      },
+    ],
+    18: [
+      { mult: 1,   success: 0.15, boom: 0.068 },
+      { mult: 2,   success: 0.12, boom: 0.044 },
+      { mult: 3.5, success: 0.10, boom: 0.018 },
+      { mult: 6.5, success: 0.08, boom: 0     },
+    ],
+    19: [
+      { mult: 1,   success: 0.15, boom: 0.085  },
+      { mult: 2,   success: 0.12, boom: 0.0616 },
+      { mult: 3.5, success: 0.10, boom: 0.036  },
+      { mult: 6.5, success: 0.08, boom: 0      },
+    ],
+    20: [
+      { mult: 1,   success: 0.30, boom: 0.105 },
+      { mult: 2,   success: 0.25, boom: 0.075 },
+      { mult: 3.5, success: 0.20, boom: 0.040 },
+      { mult: 6.5, success: 0.15, boom: 0     },
+    ],
+    21: [
+      { mult: 1,   success: 0.15, boom: 0.1275 },
+      { mult: 2,   success: 0.12, boom: 0.088  },
+      { mult: 3.5, success: 0.10, boom: 0.045  },
+      { mult: 6.5, success: 0.08, boom: 0      },
+    ],
+  };
+
   global.GMS_RATES = GMS_RATES;
   global.COST_COEFS = COST_COEFS;
+  global.ENHANCE_MODE = ENHANCE_MODE;
 })(window);
