@@ -5,7 +5,10 @@
     const c = global.COST_COEFS[currentStar];
     if (!c) throw new Error("No cost coefficient for star " + currentStar);
     const levelTier = Math.floor(itemLevel / 10) * 10;
-    const raw = c.mult * Math.pow(levelTier, 3) * Math.pow(currentStar + 1, c.expo) / c.divisor + 10;
+    const raw =
+      (c.mult * Math.pow(levelTier, 3) * Math.pow(currentStar + 1, c.expo)) /
+        c.divisor +
+      10;
     return 100 * Math.round(raw);
   }
 
@@ -30,7 +33,14 @@
   }
 
   function applyRateModifiers(currentStar, opts) {
-    const em = enhanceEntry(currentStar, opts);
+    // Safeguard-to-18: when safeguard is checked in modes 2–4, stars 15–17
+    // use the classic Mode 1 + safeguard path (boom = 0) instead of ENHANCE_MODE.
+    const sgOverride =
+      opts.safeguard &&
+      (opts.enhanceMode || 0) >= 2 &&
+      currentStar >= 15 &&
+      currentStar <= 17;
+    const em = sgOverride ? null : enhanceEntry(currentStar, opts);
     let s, m, b;
 
     if (em) {
@@ -46,7 +56,8 @@
       m = base[1];
       b = base[2];
 
-      const boomReductionActive = opts.event === "boomReduction" || opts.event === "shiningStarForce";
+      const boomReductionActive =
+        opts.event === "boomReduction" || opts.event === "shiningStarForce";
       if (boomReductionActive && currentStar <= 21) {
         m += b * 0.3;
         b *= 0.7;
@@ -54,7 +65,8 @@
 
       const sgActive =
         opts.safeguard &&
-        currentStar >= 15 && currentStar <= 17 &&
+        currentStar >= 15 &&
+        currentStar <= 17 &&
         !(opts.event === "fivetenfifteen" && currentStar === 15);
       if (sgActive) {
         m += b;
@@ -66,7 +78,7 @@
       s = Math.min(1, s * 1.05);
       const left = 1 - s;
       const denom = m + b;
-      m = denom > 0 ? m * left / denom : left;
+      m = denom > 0 ? (m * left) / denom : left;
       b = left - m;
     }
 
@@ -74,7 +86,12 @@
   }
 
   function costMultiplier(currentStar, opts) {
-    const em = enhanceEntry(currentStar, opts);
+    const sgOverride =
+      opts.safeguard &&
+      (opts.enhanceMode || 0) >= 2 &&
+      currentStar >= 15 &&
+      currentStar <= 17;
+    const em = sgOverride ? null : enhanceEntry(currentStar, opts);
     let mult = em ? em.mult : 1;
 
     if (currentStar <= 15) {
@@ -98,7 +115,8 @@
     if (!em) {
       const sgActive =
         opts.safeguard &&
-        currentStar >= 15 && currentStar <= 17 &&
+        currentStar >= 15 &&
+        currentStar <= 17 &&
         !(opts.event === "fivetenfifteen" && currentStar === 15);
       if (sgActive) mult += 2;
     }
@@ -117,7 +135,9 @@
         opts.event === "fivetenfifteen" &&
         (star === 5 || star === 10 || star === 15);
 
-      const cost = Math.round(baseCost(star, itemLevel) * costMultiplier(star, opts));
+      const cost = Math.round(
+        baseCost(star, itemLevel) * costMultiplier(star, opts),
+      );
       totalCost += cost;
       attempts += 1;
 
@@ -143,7 +163,10 @@
 
   function percentile(sortedAsc, p) {
     if (sortedAsc.length === 0) return 0;
-    const idx = Math.min(sortedAsc.length - 1, Math.floor(p * sortedAsc.length));
+    const idx = Math.min(
+      sortedAsc.length - 1,
+      Math.floor(p * sortedAsc.length),
+    );
     return sortedAsc[idx];
   }
 
@@ -155,7 +178,11 @@
     const width = (max - min) / bucketCount;
     const buckets = [];
     for (let i = 0; i < bucketCount; i++) {
-      buckets.push({ from: min + i * width, to: min + (i + 1) * width, count: 0 });
+      buckets.push({
+        from: min + i * width,
+        to: min + (i + 1) * width,
+        count: 0,
+      });
     }
     for (const v of sortedAsc) {
       let i = Math.floor((v - min) / width);
@@ -172,7 +199,8 @@
     const span = max - min + 1;
     if (span <= maxBuckets) {
       const buckets = [];
-      for (let v = min; v <= max; v++) buckets.push({ from: v, to: v, count: 0 });
+      for (let v = min; v <= max; v++)
+        buckets.push({ from: v, to: v, count: 0 });
       for (const v of sortedAsc) buckets[v - min].count += 1;
       return buckets;
     }
@@ -187,16 +215,18 @@
       const { currentStar, targetStar, itemLevel, trials } = input;
       const opts = {
         starCatching: !!input.starCatching,
-        safeguard:    !!input.safeguard,
-        mvp:          input.mvp || "none",
-        event:        input.event || "none",
-        enhanceMode:  input.enhanceMode || 0,
+        safeguard: !!input.safeguard,
+        mvp: input.mvp || "none",
+        event: input.event || "none",
+        enhanceMode: input.enhanceMode || 0,
       };
 
       const costs = new Array(trials);
       const booms = new Array(trials);
       const attempts = new Array(trials);
-      let sumCost = 0, sumBooms = 0, sumAttempts = 0;
+      let sumCost = 0,
+        sumBooms = 0,
+        sumAttempts = 0;
       let i = 0;
 
       function runChunk() {
@@ -224,26 +254,26 @@
 
         resolve({
           trials,
-          avgCost:        sumCost / trials,
-          medianCost:     percentile(costs, 0.5),
-          p25:            percentile(costs, 0.25),
-          p75:            percentile(costs, 0.75),
-          p95:            percentile(costs, 0.95),
-          minCost:        costs[0],
-          maxCost:        costs[costs.length - 1],
+          avgCost: sumCost / trials,
+          medianCost: percentile(costs, 0.5),
+          p25: percentile(costs, 0.25),
+          p75: percentile(costs, 0.75),
+          p95: percentile(costs, 0.95),
+          minCost: costs[0],
+          maxCost: costs[costs.length - 1],
 
-          avgBooms:       sumBooms / trials,
-          medianBooms:    percentile(booms, 0.5),
-          p25Booms:       percentile(booms, 0.25),
-          p75Booms:       percentile(booms, 0.75),
-          p95Booms:       percentile(booms, 0.95),
-          minBooms:       booms[0],
-          maxBooms:       booms[booms.length - 1],
+          avgBooms: sumBooms / trials,
+          medianBooms: percentile(booms, 0.5),
+          p25Booms: percentile(booms, 0.25),
+          p75Booms: percentile(booms, 0.75),
+          p95Booms: percentile(booms, 0.95),
+          minBooms: booms[0],
+          maxBooms: booms[booms.length - 1],
 
-          avgAttempts:    sumAttempts / trials,
+          avgAttempts: sumAttempts / trials,
           medianAttempts: percentile(attempts, 0.5),
-          buckets:        bucketize(costs, 30),
-          boomBuckets:    bucketizeIntegers(booms, 30),
+          buckets: bucketize(costs, 30),
+          boomBuckets: bucketizeIntegers(booms, 30),
         });
       }
 

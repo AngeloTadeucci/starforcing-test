@@ -310,12 +310,10 @@
     $("enhanceModeLabel").textContent =
       ENHANCE_MODE_LABELS[v] || ENHANCE_MODE_LABELS[1];
 
-    // Modes 2–4 carry their own boom protection and override Safeguard, so grey
-    // it out. Mode 1 (baseline) leaves it active — classic behaviour.
-    const overrides = v >= 2;
+    // Safeguard is always available — in modes 2–4 it means "safeguard to 18".
     const sg = $("safeguard");
-    sg.disabled = overrides;
-    sg.closest(".check").classList.toggle("is-disabled", overrides);
+    sg.disabled = false;
+    sg.closest(".check").classList.remove("is-disabled");
 
     syncRateCostTable();
   }
@@ -372,10 +370,16 @@
   function syncBoomTable() {
     const ev = $("event").value;
     const boomEventActive = ev === "boomReduction" || ev === "shiningStarForce";
+    const safeguardChecked = $("safeguard").checked;
     document.querySelectorAll(".boom-cell").forEach((cell) => {
       const base = parseFloat(cell.dataset.base);
-      // Boom reduction events only affect Mode 1; Modes 2–4 use fixed
-      // ENHANCE_MODE rates that the simulator never modifies for events.
+      const star = parseInt(cell.closest("tr").cells[0].textContent);
+      // Safeguard to 18: stars 15–17 always have 0% boom when safeguard is on.
+      if (safeguardChecked && star >= 15 && star <= 17) {
+        cell.innerHTML = `<span style="text-decoration:line-through;color:var(--muted-2)">${base.toFixed(2)}%</span> 0%`;
+        return;
+      }
+      // Boom reduction events only affect Mode 1; Modes 2–4 use fixed ENHANCE_MODE rates.
       const reduced = boomEventActive && cell.dataset.modeCol === "1";
       if (reduced) {
         const reducedVal = (base * 0.7).toFixed(2);
@@ -400,7 +404,10 @@
     $("mvp").addEventListener("change", syncRateCostTable);
     $("itemLevel").addEventListener("change", syncEnhanceMode);
     $("starCatching").addEventListener("change", syncEnhanceMode);
-    $("safeguard").addEventListener("change", syncEnhanceMode);
+    $("safeguard").addEventListener("change", () => {
+      syncEnhanceMode();
+      syncBoomTable();
+    });
     syncEnhanceMode();
     syncEventNote();
   });
