@@ -193,9 +193,60 @@
     sg.closest(".check").classList.toggle("is-disabled", overrides);
   }
 
+  // Collects any modelling caveats that apply to the current inputs and renders
+  // them as separate lines in the notice box. Nothing is shown on Mode 1 — the
+  // classic path is fully known. On Modes 2–4, up to two can apply:
+  //   • Mode boom rate — Modes 2 and 3 carry an estimated, unconfirmed boom rate
+  //     (Mode 4 has no boom). Flagged only alongside a boom event, when boom
+  //     outcomes are front of mind.
+  //   • Event cost reduction — event discounts (30% off, Shining Star Force) use
+  //     an assumed stacking formula; the real behaviour isn't confirmed.
+  function syncEventNote() {
+    const mode = parseInt($("enhanceMode").value, 10) || 1;
+    const event = $("event").value;
+    const note = $("eventNote");
+    const isBoomEvent = event === "boomReduction" || event === "shiningStarForce";
+    const isCostEvent = event === "thirtyOff" || event === "shiningStarForce";
+    const lines = [];
+
+    // Mode 1 is the classic, fully-known path — no modelling caveats apply there.
+    if (mode !== 1) {
+      if ((mode === 2 || mode === 3) && isBoomEvent) {
+        lines.push(
+          "<strong>Boom rate is an estimate.</strong> We don't know exactly how " +
+          "Mode " + mode + "'s boom rate will behave yet — for now boom is being " +
+          "applied as it normally would, so treat boom counts as approximate."
+        );
+      }
+
+      if (isCostEvent) {
+        lines.push(
+          "<strong>Cost reduction is an estimate.</strong> We don't know for sure " +
+          "how event cost reductions will be calculated — the discount is currently " +
+          "applied as a straight percentage off each star's cost, so treat totals " +
+          "as approximate."
+        );
+      }
+    }
+
+    if (lines.length === 0) {
+      note.classList.add("hidden");
+      note.innerHTML = "";
+      return;
+    }
+
+    note.innerHTML = lines.map((l) => "<p>" + l + "</p>").join("");
+    note.classList.remove("hidden");
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     $("sf-form").addEventListener("submit", onSubmit);
-    $("enhanceMode").addEventListener("input", syncEnhanceMode);
+    $("enhanceMode").addEventListener("input", () => {
+      syncEnhanceMode();
+      syncEventNote();
+    });
+    $("event").addEventListener("change", syncEventNote);
     syncEnhanceMode();
+    syncEventNote();
   });
 })();

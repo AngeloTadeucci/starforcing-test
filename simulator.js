@@ -81,12 +81,17 @@
     // New system replaces the Safeguard +2 surcharge with the mode's own multiplier.
     let mult = em ? em.mult : 1;
 
+    // Discounts stack additively as a single percentage off the base cost, then
+    // scale the multiplier. This keeps the classic path (mult 1) unchanged while
+    // applying the full reduction to Enhancement Modes whose mult is not 1.
+    let discount = 0;
     if (currentStar <= 15) {
-      if (opts.mvp === "silver")  mult -= 0.03;
-      if (opts.mvp === "gold")    mult -= 0.05;
-      if (opts.mvp === "diamond") mult -= 0.10;
+      if (opts.mvp === "silver")  discount += 0.03;
+      if (opts.mvp === "gold")    discount += 0.05;
+      if (opts.mvp === "diamond") discount += 0.10;
     }
-    if (opts.event === "thirtyOff" || opts.event === "shiningStarForce") mult -= 0.30;
+    if (opts.event === "thirtyOff" || opts.event === "shiningStarForce") discount += 0.30;
+    mult *= 1 - discount;
 
     if (!em) {
       const sgActive =

@@ -342,6 +342,48 @@ button.is-running {
   font-size: 13px;
 }
 
+.event-note {
+  margin: -4px 0 0;
+  padding: 9px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: 4px;
+}
+
+.event-note p {
+  margin: 0;
+}
+
+.event-note p + p {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.event-note strong {
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+.event-note.hidden { display: none; }
+
+/* Keep the gap before the next row constant whether or not the note is shown —
+   the note's presence in the DOM breaks the .row + .row spacing chain. */
+.event-note + .row {
+  margin-top: 14px;
+}
+
+.check-note {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted-2);
+}
+
 /* ── Results ───────────────────────────────────────────── */
 .results {
   margin-top: 40px;
