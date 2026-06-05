@@ -79,9 +79,10 @@
     $("m-median").textContent = fmtMesos(stats.medianCost);
     $("m-booms").textContent = stats.avgBooms.toFixed(2);
     $("m-attempts").textContent = stats.medianAttempts.toFixed(1);
-    $("m-avg-expected").textContent = "exp. " + fmtMesos(expected.expectedCost);
+    $("m-avg-expected").textContent =
+      fmtMesos(expected.expectedCost) + " expected";
     $("m-booms-expected").textContent =
-      "exp. " + expected.expectedBooms.toFixed(2);
+      expected.expectedBooms.toFixed(2) + " expected";
 
     renderStatList("cost-pct", [
       { label: "Min", value: fmtMesos(stats.minCost) },
@@ -275,8 +276,8 @@
           .map((m) => {
             const opts = {
               enhanceMode: m,
-              mvp: "none",
-              event: "none",
+              mvp: $("mvp").value,
+              event: $("event").value,
               safeguard: $("safeguard").checked,
               starCatching: $("starCatching").checked,
             };
@@ -327,7 +328,11 @@
   document.addEventListener("DOMContentLoaded", () => {
     $("sf-form").addEventListener("submit", onSubmit);
     $("enhanceMode").addEventListener("input", syncEnhanceMode);
-    $("event").addEventListener("change", syncBoomTable);
+    $("event").addEventListener("change", () => {
+      syncBoomTable();
+      syncRateCostTable();
+    });
+    $("mvp").addEventListener("change", syncRateCostTable);
     $("itemLevel").addEventListener("change", syncEnhanceMode);
     $("starCatching").addEventListener("change", syncEnhanceMode);
     $("safeguard").addEventListener("change", syncEnhanceMode);

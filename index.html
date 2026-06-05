@@ -15,7 +15,7 @@
     <body>
         <main class="container">
             <header class="masthead">
-                <h1>GMS Star Force Calculator</h1>
+                <h1>v269 GMS PTS Star Force Calculator</h1>
                 <p class="subtitle">
                     Simulates star-force outcomes against the current GMS rate
                     and cost tables.
@@ -174,6 +174,31 @@
                 </form>
 
                 <section class="reference">
+                    <article class="panel">
+                        <header class="panel-head">
+                            <span class="panel-title"
+                                >Success rate &amp; cost by star</span
+                            >
+                            <span class="panel-unit" id="rate-cost-unit"
+                                >% success &middot; M mesos per attempt</span
+                            >
+                        </header>
+                        <div class="panel-body">
+                            <table class="mode-table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th data-mode-col="1">Mode 1</th>
+                                        <th data-mode-col="2">Mode 2</th>
+                                        <th data-mode-col="3">Mode 3</th>
+                                        <th data-mode-col="4">Mode 4</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rate-cost-table-body"></tbody>
+                            </table>
+                        </div>
+                    </article>
+
                     <article class="panel">
                         <header class="panel-head">
                             <span class="panel-title"
@@ -391,31 +416,6 @@
                                 also drops at higher modes (15% → 12% → 10% →
                                 8%; 20★ runs 30% → 25% → 20% → 15%).
                             </p>
-                        </div>
-                    </article>
-
-                    <article class="panel">
-                        <header class="panel-head">
-                            <span class="panel-title"
-                                >Success rate &amp; cost by star</span
-                            >
-                            <span class="panel-unit" id="rate-cost-unit"
-                                >% success &middot; M mesos per attempt</span
-                            >
-                        </header>
-                        <div class="panel-body">
-                            <table class="mode-table">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th data-mode-col="1">Mode 1</th>
-                                        <th data-mode-col="2">Mode 2</th>
-                                        <th data-mode-col="3">Mode 3</th>
-                                        <th data-mode-col="4">Mode 4</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="rate-cost-table-body"></tbody>
-                            </table>
                         </div>
                     </article>
                 </section>
