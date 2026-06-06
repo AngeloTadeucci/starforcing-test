@@ -112,6 +112,9 @@ fieldset {
   border: 0;
   padding: 14px 22px;
   margin: 0;
+  /* <fieldset> defaults to min-inline-size: min-content, which stops it from
+     shrinking below its content and overflows narrow (mobile) viewports. */
+  min-width: 0;
 }
 
 fieldset:first-of-type {
@@ -146,6 +149,9 @@ label {
   flex-direction: column;
   gap: 6px;
   flex: 1 1 220px;
+  /* Without this, a long <select> option (min-content auto) keeps the label
+     from shrinking or wrapping, so it overflows on narrow screens. */
+  min-width: 0;
 }
 
 .field-label {
@@ -719,11 +725,19 @@ th[data-mode-col].active-mode-col {
 
 @media (max-width: 880px) {
   .layout {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr) — not bare 1fr — so the wide reference tables can't
+       inflate the single shared track and push the form off-screen. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 22px;
   }
   .reference {
     margin-top: 4px;
+  }
+  /* Let the 5-column reference tables scroll within their panel instead of
+     overflowing the page when they can't shrink to fit. */
+  .reference .panel-body {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -816,5 +830,28 @@ th[data-mode-col].active-mode-col {
   .actions {
     padding: 14px 16px;
     flex-wrap: wrap;
+  }
+  /* 16px keeps iOS Safari from auto-zooming when a field gets focus. */
+  input[type="number"],
+  select {
+    font-size: 16px;
+  }
+  /* Tighten the reference tables so the 5 columns fit without needing to
+     scroll on a typical phone (the panel keeps overflow-x as a fallback). */
+  .mode-table {
+    font-size: 11.5px;
+  }
+  .mode-table th,
+  .mode-table td {
+    padding: 8px 7px;
+  }
+  .table-sub {
+    font-size: 9.5px;
+  }
+  .panel-head {
+    padding: 11px 12px;
+  }
+  .table-foot {
+    padding: 11px 12px 12px;
   }
 }
