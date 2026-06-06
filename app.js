@@ -26,7 +26,7 @@
       starCatching: $("starCatching").checked,
       safeguard: $("safeguard").checked,
       enhanceMode: parseInt($("enhanceMode").value, 10),
-      enhanceModeBoomReduction: $("enhanceModeBoomReduction").checked,
+      enhanceModeEvents: $("enhanceModeEvents").checked,
     };
   }
 
@@ -260,7 +260,7 @@
   }
 
   const ENHANCE_MODE_LABELS = {
-    1: "Mode 1 — 1× cost · baseline (uses Safeguard)",
+    1: "Mode 1 — 1× cost · baseline",
     2: "Mode 2 — 1.5× cost (15–17★) | 2× cost (18–21★)",
     3: "Mode 3 — 2.5× cost (15–17★) | 3.5× cost (18–21★)",
     4: "Mode 4 — 3× cost (15–17★) | 6.5× cost (18–21★) · no boom",
@@ -282,7 +282,7 @@
               event: $("event").value,
               safeguard: $("safeguard").checked,
               starCatching: $("starCatching").checked,
-              enhanceModeBoomReduction: $("enhanceModeBoomReduction").checked,
+              enhanceModeEvents: $("enhanceModeEvents").checked,
             };
             const [s] = SF.applyRateModifiers(star, opts);
             const cost = Math.round(
@@ -317,55 +317,98 @@
     sg.disabled = false;
     sg.closest(".check").classList.remove("is-disabled");
 
+    syncEnhanceEventsToggle();
     syncRateCostTable();
   }
 
-  // Collects any modelling caveats that apply to the current inputs and renders
-  // them as separate lines in the notice box. Nothing is shown on Mode 1 — the
-  // classic path is fully known. On Modes 2–4, up to two can apply:
-  //   • Mode boom rate — Modes 2 and 3 carry an estimated, unconfirmed boom rate
-  //     (Mode 4 has no boom). Flagged only alongside a boom event, when boom
-  //     outcomes are front of mind.
-  //   • Event cost reduction — event discounts (30% off, Shining Star Force) use
-  //     an assumed stacking formula; the real behaviour isn't confirmed.
+  // The experimental "apply events to enhance modes" toggle is a no-op outside
+  // Modes 2–4 with a cost- or boom-reducing event active: Mode 1 already applies
+  // events via the classic path, and stars need a discount/boom event to scale.
+  // Cost reduction can apply in Modes 2–4; boom reduction only in Modes 2–3 (Mode
+  // 4 has no boom). Grey it out and say why when it can't do anything, otherwise
+  // ticking it looks like it does nothing.
+  function syncEnhanceEventsToggle() {
+    const mode = parseInt($("enhanceMode").value, 10) || 1;
+    const ev = $("event").value;
+    const costEvent = ev === "thirtyOff" || ev === "shiningStarForce";
+    const boomEvent = ev === "boomReduction" || ev === "shiningStarForce";
+
+    const affectsCost = costEvent && mode >= 2;
+    const affectsBoom = boomEvent && (mode === 2 || mode === 3);
+    const usable = affectsCost || affectsBoom;
+
+    const cb = $("enhanceModeEvents");
+    cb.disabled = !usable;
+    cb.closest(".check").classList.toggle("is-disabled", !usable);
+
+    const hint = $("enhanceModeEventsHint");
+    if (hint) {
+      if (usable) hint.textContent = "(experimental)";
+      else if (mode === 1) hint.textContent = "(modes 2–4 only)";
+      else if (!costEvent && !boomEvent)
+        hint.textContent = "(needs a cost or boom event)";
+      else hint.textContent = "(no effect with this event)";
+    }
+  }
+
+  // Explains, in plain language, how the selected event interacts with the new
+  // Enhancement Modes (2–4) — the common point of confusion. Star events are only
+  // confirmed for the classic system (Mode 1); whether they carry over to the new
+  // modes is unknown, so by default they're NOT applied there. That can make a
+  // higher mode look boomier/pricier than Mode 1 with the same event, which is
+  // why the message spells out exactly what is and isn't being applied, and how
+  // the "apply events to enhance modes" toggle changes it. Nothing shows on Mode
+  // 1 (fully known) or when no cost/boom event is selected.
   function syncEventNote() {
     const mode = parseInt($("enhanceMode").value, 10) || 1;
     const event = $("event").value;
+    const applied = $("enhanceModeEvents").checked;
     const note = $("eventNote");
+
     const isBoomEvent =
       event === "boomReduction" || event === "shiningStarForce";
     const isCostEvent = event === "thirtyOff" || event === "shiningStarForce";
-    const lines = [];
 
-    // Mode 1 is the classic, fully-known path — no modelling caveats apply there.
-    if (mode !== 1) {
-      if ((mode === 2 || mode === 3) && isBoomEvent) {
-        lines.push(
-          "<strong>Boom rate is an estimate.</strong> We don't know exactly how " +
-            "Mode " +
-            mode +
-            "'s boom rate will behave yet — for now boom is being " +
-            "applied as it normally would, so treat boom counts as approximate.",
-        );
-      }
-
-      if (isCostEvent) {
-        lines.push(
-          "<strong>Cost reduction is an estimate.</strong> We don't know for sure " +
-            "how event cost reductions will be calculated — the discount is currently " +
-            "applied as a straight percentage off each star's cost, so treat totals " +
-            "as approximate.",
-        );
-      }
-    }
-
-    if (lines.length === 0) {
+    if (mode < 2 || !(isBoomEvent || isCostEvent)) {
       note.classList.add("hidden");
       note.innerHTML = "";
       return;
     }
 
-    note.innerHTML = lines.map((l) => "<p>" + l + "</p>").join("");
+    // Which of this event's effects could actually touch this mode?
+    // (Mode 4 has no booms, so boom reduction can't do anything there.)
+    const effects = [];
+    if (isCostEvent) effects.push("cost discount");
+    if (isBoomEvent && mode !== 4) effects.push("boom reduction");
+
+    let msg;
+    if (effects.length === 0) {
+      // Mode 4 + a boom-only event: nothing to reduce.
+      msg =
+        "This event only reduces booms, and <strong>Mode 4 never booms</strong>, " +
+        "so it has no effect here.";
+    } else if (applied) {
+      msg =
+        "<strong>Experimental — this event is being applied to Mode " +
+        mode +
+        ".</strong> Its " +
+        effects.join(" and ") +
+        " is layered on top of the new mode's rates. It isn't confirmed that star " +
+        "events carry over to Enhancement Modes, so treat these numbers as a what-if.";
+    } else {
+      msg =
+        "<strong>This event is NOT being applied to Mode " +
+        mode +
+        ".</strong> Star events are only confirmed for the classic system (Mode 1); " +
+        "it's unknown whether they carry over to the new modes, so they're left off " +
+        "by default. That's why Mode " +
+        mode +
+        " can show more booms or higher cost here than Mode 1 with the same event. " +
+        "Tick <em>“Apply event cost &amp; boom reductions to enhance modes”</em> below " +
+        "to apply it anyway (experimental).";
+    }
+
+    note.innerHTML = "<p>" + msg + "</p>";
     note.classList.remove("hidden");
   }
 
@@ -373,7 +416,7 @@
     const ev = $("event").value;
     const boomEventActive = ev === "boomReduction" || ev === "shiningStarForce";
     const safeguardChecked = $("safeguard").checked;
-    const enhModeBoomRed = $("enhanceModeBoomReduction").checked;
+    const enhModeEvents = $("enhanceModeEvents").checked;
     document.querySelectorAll(".boom-cell").forEach((cell) => {
       const base = parseFloat(cell.dataset.base);
       const star = parseInt(cell.closest("tr").cells[0].textContent);
@@ -384,7 +427,7 @@
       }
       // Boom reduction applies to Mode 1 always; to modes 2–3 only if the option is on.
       const reduced =
-        boomEventActive && (cell.dataset.modeCol === "1" || enhModeBoomRed);
+        boomEventActive && (cell.dataset.modeCol === "1" || enhModeEvents);
       if (reduced) {
         const reducedVal = (base * 0.7).toFixed(2);
         cell.innerHTML = `<span style="text-decoration:line-through;color:var(--muted-2)">${base.toFixed(2)}%</span> ${reducedVal}%`;
@@ -401,6 +444,7 @@
       syncEventNote();
     });
     $("event").addEventListener("change", () => {
+      syncEnhanceEventsToggle();
       syncBoomTable();
       syncRateCostTable();
       syncEventNote();
@@ -412,9 +456,10 @@
       syncEnhanceMode();
       syncBoomTable();
     });
-    $("enhanceModeBoomReduction").addEventListener("change", () => {
+    $("enhanceModeEvents").addEventListener("change", () => {
       syncBoomTable();
       syncRateCostTable();
+      syncEventNote();
     });
     syncEnhanceMode();
     syncBoomTable();

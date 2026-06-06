@@ -155,10 +155,16 @@ label {
   color: var(--muted);
 }
 
-.field-label .hint {
+.field-label .hint,
+.check .hint {
   font-style: normal;
   color: var(--muted-2);
   letter-spacing: 0.04em;
+}
+
+.check .hint:not(:empty) {
+  margin-left: 4px;
+  font-size: 11px;
 }
 
 /* ── Enhancement Mode slider ───────────────────────────── */
@@ -436,13 +442,6 @@ button.is-running {
 the note's presence in the DOM breaks the .row + .row spacing chain. */
 .event-note + .row {
   margin-top: 14px;
-}
-
-.check-note {
-  margin: 8px 0 0;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--muted-2);
 }
 
 /* ── Results ───────────────────────────────────────────── */

@@ -49,8 +49,10 @@
       s = em.success;
       b = em.boom;
       m = 1 - s - b;
-      // Boom reduction applies to Enhancement Mode rates only if the option is enabled.
-      if (opts.enhanceModeBoomReduction) {
+      // Event boom reduction reaches Enhancement Mode rates only when the
+      // experimental "apply events to enhance modes" toggle is on — it's
+      // unconfirmed whether event boom reduction applies under the new system.
+      if (opts.enhanceModeEvents) {
         const boomReductionActive =
           opts.event === "boomReduction" || opts.event === "shiningStarForce";
         if (boomReductionActive && currentStar <= 21) {
@@ -107,17 +109,22 @@
       if (opts.mvp === "gold") mult -= 0.05;
       if (opts.mvp === "diamond") mult -= 0.1;
     }
-    if (opts.event === "thirtyOff") {
-      // 30% off the total cost (multiplicative).
-      mult *= 0.7;
-    }
-    if (opts.event === "shiningStarForce") {
-      // 30% discount applies to the base (1×) cost only.
-      // Enhancement mode premiums (modes 2–4) are NOT discounted.
-      // Subtracting 0.30 from mult achieves this:
-      //   baseCost * (enhMult − 0.30) = baseCost × enhMult − 0.30 × baseCost
-      // So you save exactly 0.30 × baseCost regardless of which mode is active.
-      mult -= 0.3;
+    // Event cost discount (30% off — thirtyOff and shiningStarForce both grant it).
+    // The base (1×) cost is always discounted. Whether the discount also scales the
+    // Enhancement Mode premium (modes 2–4) is unconfirmed, so it's gated behind the
+    // experimental "apply events to enhance modes" toggle:
+    //   • toggle off → mult -= 0.30  (discounts the base 1× cost only:
+    //       baseCost × enhMult − 0.30 × baseCost, premium untouched)
+    //   • toggle on  → mult *= 0.70  (discounts the full enhanced cost)
+    // For Mode 1 (em null, mult = 1) both branches are identical, so it's unchanged.
+    const costEvent =
+      opts.event === "thirtyOff" || opts.event === "shiningStarForce";
+    if (costEvent) {
+      if (em && opts.enhanceModeEvents) {
+        mult *= 0.7;
+      } else {
+        mult -= 0.3;
+      }
     }
 
     if (!em) {
@@ -227,7 +234,7 @@
         mvp: input.mvp || "none",
         event: input.event || "none",
         enhanceMode: input.enhanceMode || 0,
-        enhanceModeBoomReduction: !!input.enhanceModeBoomReduction,
+        enhanceModeEvents: !!input.enhanceModeEvents,
       };
 
       const costs = new Array(trials);
@@ -304,7 +311,7 @@
       mvp: input.mvp || "none",
       event: input.event || "none",
       enhanceMode: input.enhanceMode || 0,
-      enhanceModeBoomReduction: !!input.enhanceModeBoomReduction,
+      enhanceModeEvents: !!input.enhanceModeEvents,
     };
 
     // We may need stars below currentStar if a boom can drop us there.
