@@ -1,333 +1,570 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Star Force Calculator — GMS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <main class="container">
-    <header class="masthead">
-      <div class="masthead-row">
-        <h1>GMS Star Force Calculator</h1>
-        <a class="issue-link" href="https://github.com/AngeloTadeucci/starforcing-test/issues/new" target="_blank" rel="noopener noreferrer">
-          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="currentColor">
-            <path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.49c-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/>
-          </svg>
-          Report an issue
-        </a>
-      </div>
-      <p class="subtitle">Simulates star-force outcomes against the current GMS rate and cost tables.</p>
-    </header>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Star Force Calculator — GMS</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+        />
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <main class="container">
+            <header class="masthead">
+                <div class="masthead-row">
+                    <h1>GMS Star Force Calculator</h1>
+                    <a
+                        class="issue-link"
+                        href="https://github.com/AngeloTadeucci/starforcing-test/issues/new"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <svg
+                            viewBox="0 0 16 16"
+                            width="14"
+                            height="14"
+                            aria-hidden="true"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.49c-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"
+                            />
+                        </svg>
+                        Report an issue
+                    </a>
+                </div>
+                <p class="subtitle">
+                    Simulates star-force outcomes against the current GMS rate
+                    and cost tables.
+                </p>
+            </header>
 
-    <div class="layout">
-    <form id="sf-form" class="form" novalidate>
-      <fieldset>
-        <div class="legend">Equipment</div>
-        <div class="row">
-          <label>
-            <span class="field-label">Item level</span>
-            <input type="number" id="itemLevel" min="1" max="300" value="200" />
-          </label>
-          <label>
-            <span class="field-label">Trials</span>
-            <select id="trials">
-              <option value="100">100</option>
-              <option value="500">500</option>
-              <option value="1000" selected>1,000</option>
-              <option value="5000">5,000</option>
-              <option value="10000">10,000</option>
-              <option value="50000">50,000</option>
-              <option value="100000">100,000</option>
-            </select>
-          </label>
-        </div>
-      </fieldset>
+            <div class="layout">
+                <form id="sf-form" class="form" novalidate>
+                    <fieldset>
+                        <div class="legend">Equipment</div>
+                        <div class="row">
+                            <label>
+                                <span class="field-label">Item level</span>
+                                <input
+                                    type="number"
+                                    id="itemLevel"
+                                    min="1"
+                                    max="300"
+                                    value="200"
+                                />
+                            </label>
+                            <label>
+                                <span class="field-label">Trials</span>
+                                <select id="trials">
+                                    <option value="100">100</option>
+                                    <option value="500">500</option>
+                                    <option value="1000" selected>1,000</option>
+                                    <option value="5000">5,000</option>
+                                    <option value="10000">10,000</option>
+                                    <option value="50000">50,000</option>
+                                    <option value="100000">100,000</option>
+                                </select>
+                            </label>
+                        </div>
+                    </fieldset>
 
-      <fieldset>
-        <div class="legend">Star range</div>
-        <div class="row">
-          <label>
-            <span class="field-label">Current ★</span>
-            <input type="number" id="currentStar" min="0" max="29" value="0" />
-          </label>
-          <label>
-            <span class="field-label">Target ★</span>
-            <input type="number" id="targetStar" min="1" max="30" value="22" />
-          </label>
-        </div>
-      </fieldset>
+                    <fieldset>
+                        <div class="legend">Star range</div>
+                        <div class="row">
+                            <label>
+                                <span class="field-label">Current ★</span>
+                                <input
+                                    type="number"
+                                    id="currentStar"
+                                    min="0"
+                                    max="29"
+                                    value="0"
+                                />
+                            </label>
+                            <label>
+                                <span class="field-label">Target ★</span>
+                                <input
+                                    type="number"
+                                    id="targetStar"
+                                    min="1"
+                                    max="30"
+                                    value="22"
+                                />
+                            </label>
+                        </div>
+                    </fieldset>
 
-      <fieldset>
-        <div class="legend">Modifiers</div>
-        <div class="row">
-          <label>
-            <span class="field-label">MVP discount</span>
-            <select id="mvp">
-              <option value="none">None</option>
-              <option value="silver">Silver — 3%</option>
-              <option value="gold">Gold — 5%</option>
-              <option value="diamond">Diamond — 10%</option>
-            </select>
-          </label>
-          <label>
-            <span class="field-label">Event</span>
-            <select id="event">
-              <option value="none">None</option>
-              <option value="fivetenfifteen">5 / 10 / 15★ guaranteed</option>
-              <option value="thirtyOff">30% off cost</option>
-              <option value="boomReduction">30% boom reduction</option>
-              <option value="shiningStarForce">Shining Star Force — 30% off + 30% boom red.</option>
-            </select>
-          </label>
-        </div>
+                    <fieldset>
+                        <div class="legend">Modifiers</div>
+                        <div class="row">
+                            <label>
+                                <span class="field-label">MVP discount</span>
+                                <select id="mvp">
+                                    <option value="none">None</option>
+                                    <option value="silver">Silver — 3%</option>
+                                    <option value="gold">Gold — 5%</option>
+                                    <option value="diamond">
+                                        Diamond — 10%
+                                    </option>
+                                </select>
+                            </label>
+                            <label>
+                                <span class="field-label">Event</span>
+                                <select id="event">
+                                    <option value="none">None</option>
+                                    <option value="fivetenfifteen">
+                                        5 / 10 / 15★ guaranteed
+                                    </option>
+                                    <option value="thirtyOff">
+                                        30% off cost
+                                    </option>
+                                    <option value="boomReduction">
+                                        30% boom reduction
+                                    </option>
+                                    <option value="shiningStarForce">
+                                        Shining Star Force — 30% off + 30% boom
+                                        red.
+                                    </option>
+                                </select>
+                            </label>
+                        </div>
 
-        <div id="eventNote" class="event-note hidden" role="note" aria-live="polite"></div>
+                        <div
+                            id="eventNote"
+                            class="event-note hidden"
+                            role="note"
+                            aria-live="polite"
+                        ></div>
 
-        <div class="row">
-          <div class="slider-field">
-            <span class="field-label">Enhancement Mode <em class="hint">(new · experimental · 15★–21★)</em></span>
-            <input type="range" id="enhanceMode" class="slider" min="1" max="4" step="1" value="1"
-                   aria-label="Enhancement Mode" />
-            <div class="slider-ticks" aria-hidden="true">
-              <span>1</span><span>2</span><span>3</span><span>4</span>
+                        <div class="row">
+                            <div class="slider-field">
+                                <span class="field-label"
+                                    >Enhancement Mode
+                                    <em class="hint"
+                                        >(new · experimental · 15★–21★)</em
+                                    ></span
+                                >
+                                <input
+                                    type="range"
+                                    id="enhanceMode"
+                                    class="slider"
+                                    min="1"
+                                    max="4"
+                                    step="1"
+                                    value="1"
+                                    aria-label="Enhancement Mode"
+                                />
+                                <div class="slider-ticks" aria-hidden="true">
+                                    <span>1</span><span>2</span><span>3</span
+                                    ><span>4</span>
+                                </div>
+                                <span class="slider-value" id="enhanceModeLabel"
+                                    >Mode 1 — 1× cost · baseline (uses
+                                    Safeguard)</span
+                                >
+                            </div>
+                        </div>
+
+                        <div class="row checks">
+                            <label class="check">
+                                <input
+                                    type="checkbox"
+                                    id="starCatching"
+                                    checked
+                                />
+                                <span>Star catching <em>(+5%)</em></span>
+                            </label>
+                            <label class="check">
+                                <input type="checkbox" id="safeguard" checked />
+                                <span>Safeguard to 18</span>
+                            </label>
+                            <label class="check">
+                                <input
+                                    type="checkbox"
+                                    id="enhanceModeBoomReduction"
+                                />
+                                <span>Enhance mode boom reduction</span>
+                            </label>
+                        </div>
+                        <p class="check-note">
+                            In Modes 2–4, Safeguard uses classic rates for
+                            15–18★; boom chance at 18★ and above is unaffected
+                            by Safeguard.
+                        </p>
+                    </fieldset>
+
+                    <div class="actions">
+                        <button type="submit" id="calc">Run simulation</button>
+                        <span
+                            id="error"
+                            class="error"
+                            role="alert"
+                            aria-live="polite"
+                        ></span>
+                    </div>
+                </form>
+
+                <section class="reference">
+                    <article class="panel">
+                        <header class="panel-head">
+                            <span class="panel-title"
+                                >Success rate &amp; cost by star</span
+                            >
+                            <span class="panel-unit" id="rate-cost-unit"
+                                >% success &middot; M mesos per attempt</span
+                            >
+                        </header>
+                        <div class="panel-body">
+                            <table class="mode-table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th data-mode-col="1">Mode 1</th>
+                                        <th data-mode-col="2">Mode 2</th>
+                                        <th data-mode-col="3">Mode 3</th>
+                                        <th data-mode-col="4">Mode 4</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rate-cost-table-body"></tbody>
+                            </table>
+                            <p class="table-foot">
+                                For 18★–21★ the success rate drops at higher
+                                modes: 15% → 12% → 10% → 8% (all stars except
+                                20★); 20★ runs 30% → 25% → 20% → 15%.
+                            </p>
+                        </div>
+                    </article>
+
+                    <article class="panel">
+                        <header class="panel-head">
+                            <span class="panel-title"
+                                >Destroy chance by star</span
+                            >
+                            <span class="panel-unit">% per attempt</span>
+                        </header>
+                        <div class="panel-body">
+                            <table class="mode-table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th data-mode-col="1">Mode 1</th>
+                                        <th data-mode-col="2">Mode 2</th>
+                                        <th data-mode-col="3">Mode 3</th>
+                                        <th data-mode-col="4">Mode 4</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="boom-table-body">
+                                    <tr>
+                                        <td>15 → 16</td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="1"
+                                            data-base="2.10"
+                                        >
+                                            2.10%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="2"
+                                            data-base="1.40"
+                                        >
+                                            1.40%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="3"
+                                            data-base="0.70"
+                                        >
+                                            0.70%
+                                        </td>
+                                        <td class="num zero" data-mode-col="4">
+                                            0%
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>16 → 17</td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="1"
+                                            data-base="2.10"
+                                        >
+                                            2.10%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="2"
+                                            data-base="1.40"
+                                        >
+                                            1.40%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="3"
+                                            data-base="0.70"
+                                        >
+                                            0.70%
+                                        </td>
+                                        <td class="num zero" data-mode-col="4">
+                                            0%
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>17 → 18</td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="1"
+                                            data-base="6.80"
+                                        >
+                                            6.80%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="2"
+                                            data-base="4.25"
+                                        >
+                                            4.25%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="3"
+                                            data-base="1.70"
+                                        >
+                                            1.70%
+                                        </td>
+                                        <td class="num zero" data-mode-col="4">
+                                            0%
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>18 → 19</td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="1"
+                                            data-base="6.80"
+                                        >
+                                            6.80%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="2"
+                                            data-base="4.40"
+                                        >
+                                            4.40%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="3"
+                                            data-base="1.80"
+                                        >
+                                            1.80%
+                                        </td>
+                                        <td class="num zero" data-mode-col="4">
+                                            0%
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>19 → 20</td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="1"
+                                            data-base="8.50"
+                                        >
+                                            8.50%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="2"
+                                            data-base="6.16"
+                                        >
+                                            6.16%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="3"
+                                            data-base="3.60"
+                                        >
+                                            3.60%
+                                        </td>
+                                        <td class="num zero" data-mode-col="4">
+                                            0%
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>20 → 21</td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="1"
+                                            data-base="10.50"
+                                        >
+                                            10.50%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="2"
+                                            data-base="7.50"
+                                        >
+                                            7.50%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="3"
+                                            data-base="4.00"
+                                        >
+                                            4.00%
+                                        </td>
+                                        <td class="num zero" data-mode-col="4">
+                                            0%
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>21 → 22</td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="1"
+                                            data-base="12.75"
+                                        >
+                                            12.75%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="2"
+                                            data-base="8.80"
+                                        >
+                                            8.80%
+                                        </td>
+                                        <td
+                                            class="num boom-cell"
+                                            data-mode-col="3"
+                                            data-base="4.50"
+                                        >
+                                            4.50%
+                                        </td>
+                                        <td class="num zero" data-mode-col="4">
+                                            0%
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p class="table-foot">
+                                Destroy (boom) chance per attempt. Mode 1 equals
+                                the base rate; higher modes reduce it, and Mode
+                                4 never destroys.
+                            </p>
+                        </div>
+                    </article>
+                </section>
             </div>
-            <span class="slider-value" id="enhanceModeLabel">Mode 1 — 1× cost · baseline (uses Safeguard)</span>
-          </div>
-        </div>
 
-        <div class="row checks">
-          <label class="check">
-            <input type="checkbox" id="starCatching" checked />
-            <span>Star catching <em>(+5%)</em></span>
-          </label>
-          <label class="check">
-            <input type="checkbox" id="safeguard" checked />
-            <span>Safeguard <em>(15→16, 16→17, 17→18)</em></span>
-          </label>
-        </div>
-        <p class="check-note">Modes 2 &amp; 3 don't use Safeguard, so boom chance goes up in some instances.</p>
-      </fieldset>
+            <section id="results" class="results hidden" aria-live="polite">
+                <div class="section-head">
+                    <span class="rule"></span>
+                    <span class="section-title">Results</span>
+                    <span class="rule"></span>
+                </div>
 
-      <div class="actions">
-        <button type="submit" id="calc">Run simulation</button>
-        <span id="error" class="error" role="alert" aria-live="polite"></span>
-      </div>
-    </form>
+                <div class="metrics">
+                    <div class="card">
+                        <div class="card-label">Average cost</div>
+                        <div class="card-value" id="m-avg">—</div>
+                        <div class="card-sub" id="m-avg-expected"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Median cost</div>
+                        <div class="card-value" id="m-median">—</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Avg booms</div>
+                        <div class="card-value" id="m-booms">—</div>
+                        <div class="card-sub" id="m-booms-expected"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Median attempts</div>
+                        <div class="card-value" id="m-attempts">—</div>
+                    </div>
+                </div>
 
-    <section class="reference">
-      <div class="section-head">
-        <span class="rule"></span>
-        <span class="section-title">Enhancement Mode</span>
-        <span class="rule"></span>
-      </div>
+                <article class="panel">
+                    <header class="panel-head">
+                        <span class="panel-title">Cost</span>
+                        <span class="panel-unit">mesos</span>
+                    </header>
+                    <div class="panel-body">
+                        <dl class="stat-list" id="cost-pct"></dl>
+                        <div class="chart">
+                            <canvas
+                                id="histogram"
+                                width="800"
+                                height="200"
+                            ></canvas>
+                        </div>
+                    </div>
+                </article>
 
-      <article class="panel">
-        <header class="panel-head">
-          <span class="panel-title">Cost multiplier by mode</span>
-          <span class="panel-unit">× that star's base cost</span>
-        </header>
-        <div class="panel-body">
-          <table class="mode-table">
-            <thead>
-              <tr>
-                <th>Mode</th>
-                <th>15–17★</th>
-                <th>18–21★</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>1 <span class="t-note">baseline</span></td>
-                <td class="num">1×</td>
-                <td class="num">1×</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td class="num">1.5×</td>
-                <td class="num">2×</td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td class="num">2.5×</td>
-                <td class="num">3.5×</td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td class="num">3×</td>
-                <td class="num">6.5×</td>
-              </tr>
-            </tbody>
-          </table>
-          <p class="table-foot">
-            Multiplier applies on top of each star's base meso cost (which already varies
-            per star). Modes apply to 15★–21★ only; below 15★ and at 22★+ cost is unchanged.
-          </p>
-        </div>
-      </article>
+                <article class="panel">
+                    <header class="panel-head">
+                        <span class="panel-title">Booms</span>
+                        <span class="panel-unit">items destroyed</span>
+                    </header>
+                    <div class="panel-body">
+                        <dl class="stat-list" id="booms-pct"></dl>
+                        <div class="chart">
+                            <canvas
+                                id="histogram-booms"
+                                width="800"
+                                height="200"
+                            ></canvas>
+                        </div>
+                    </div>
+                </article>
+            </section>
 
-      <article class="panel">
-        <header class="panel-head">
-          <span class="panel-title">Destroy chance by star</span>
-          <span class="panel-unit">% per attempt</span>
-        </header>
-        <div class="panel-body">
-          <table class="mode-table">
-            <thead>
-              <tr>
-                <th>Star</th>
-                <th>Mode 1</th>
-                <th>Mode 2</th>
-                <th>Mode 3</th>
-                <th>Mode 4</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>15 → 16</td>
-                <td class="num">2.10%</td>
-                <td class="num">1.40%</td>
-                <td class="num">0.70%</td>
-                <td class="num zero">0%</td>
-              </tr>
-              <tr>
-                <td>16 → 17</td>
-                <td class="num">2.10%</td>
-                <td class="num">1.40%</td>
-                <td class="num">0.70%</td>
-                <td class="num zero">0%</td>
-              </tr>
-              <tr>
-                <td>17 → 18</td>
-                <td class="num">6.80%</td>
-                <td class="num">4.25%</td>
-                <td class="num">1.70%</td>
-                <td class="num zero">0%</td>
-              </tr>
-              <tr>
-                <td>18 → 19</td>
-                <td class="num">6.80%</td>
-                <td class="num">4.40%</td>
-                <td class="num">1.80%</td>
-                <td class="num zero">0%</td>
-              </tr>
-              <tr>
-                <td>19 → 20</td>
-                <td class="num">8.50%</td>
-                <td class="num">6.16%</td>
-                <td class="num">3.60%</td>
-                <td class="num zero">0%</td>
-              </tr>
-              <tr>
-                <td>20 → 21</td>
-                <td class="num">10.50%</td>
-                <td class="num">7.50%</td>
-                <td class="num">4.00%</td>
-                <td class="num zero">0%</td>
-              </tr>
-              <tr>
-                <td>21 → 22</td>
-                <td class="num">12.75%</td>
-                <td class="num">8.80%</td>
-                <td class="num">4.50%</td>
-                <td class="num zero">0%</td>
-              </tr>
-            </tbody>
-          </table>
-          <p class="table-foot">
-            Destroy (boom) chance per attempt. Mode 1 equals the base rate; higher modes
-            reduce it, and Mode 4 never destroys. For 18★–21★ the success rate also drops at
-            higher modes (15% → 12% → 10% → 8%; 20★ runs 30% → 25% → 20% → 15%).
-          </p>
-        </div>
-      </article>
-    </section>
-    </div>
+            <footer class="colophon">
+                <div class="section-head">
+                    <span class="rule"></span>
+                    <span class="section-title">Sources</span>
+                    <span class="rule"></span>
+                </div>
+                <dl class="sources">
+                    <div class="source">
+                        <dt>Rates &amp; coefficients</dt>
+                        <dd>
+                            <a
+                                href="https://brendonmay.github.io/starforceCalculator/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >MathBro — Star Force Calculator</a
+                            >
+                            <span class="src-sep">·</span>
+                            <a
+                                href="https://github.com/brendonmay/brendonmay.github.io/blob/master/starforceCalculator/serverDiffs.js"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >serverDiffs.js</a
+                            >
+                        </dd>
+                    </div>
+                    <div class="source">
+                        <dt>Cost formula</dt>
+                        <dd>
+                            <a
+                                href="https://strategywiki.org/wiki/MapleStory/Spell_Trace_and_Star_Force#Meso_Cost"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >StrategyWiki — Spell Trace and Star Force</a
+                            >
+                        </dd>
+                    </div>
+                </dl>
+            </footer>
+        </main>
 
-    <section id="results" class="results hidden" aria-live="polite">
-      <div class="section-head">
-        <span class="rule"></span>
-        <span class="section-title">Results</span>
-        <span class="rule"></span>
-      </div>
-
-      <div class="metrics">
-        <div class="card">
-          <div class="card-label">Average cost</div>
-          <div class="card-value" id="m-avg">—</div>
-        </div>
-        <div class="card">
-          <div class="card-label">Median cost</div>
-          <div class="card-value" id="m-median">—</div>
-        </div>
-        <div class="card">
-          <div class="card-label">Avg booms</div>
-          <div class="card-value" id="m-booms">—</div>
-        </div>
-        <div class="card">
-          <div class="card-label">Avg attempts</div>
-          <div class="card-value" id="m-attempts">—</div>
-        </div>
-      </div>
-
-      <article class="panel">
-        <header class="panel-head">
-          <span class="panel-title">Cost</span>
-          <span class="panel-unit">mesos</span>
-        </header>
-        <div class="panel-body">
-          <dl class="stat-list" id="cost-pct"></dl>
-          <div class="chart">
-            <canvas id="histogram" width="800" height="200"></canvas>
-          </div>
-        </div>
-      </article>
-
-      <article class="panel">
-        <header class="panel-head">
-          <span class="panel-title">Booms</span>
-          <span class="panel-unit">items destroyed</span>
-        </header>
-        <div class="panel-body">
-          <dl class="stat-list" id="booms-pct"></dl>
-          <div class="chart">
-            <canvas id="histogram-booms" width="800" height="200"></canvas>
-          </div>
-        </div>
-      </article>
-    </section>
-
-    <footer class="colophon">
-      <div class="section-head">
-        <span class="rule"></span>
-        <span class="section-title">Sources</span>
-        <span class="rule"></span>
-      </div>
-      <dl class="sources">
-        <div class="source">
-          <dt>Rates &amp; coefficients</dt>
-          <dd>
-            <a href="https://brendonmay.github.io/starforceCalculator/" target="_blank" rel="noopener noreferrer">MathBro — Star Force Calculator</a>
-            <span class="src-sep">·</span>
-            <a href="https://github.com/brendonmay/brendonmay.github.io/blob/master/starforceCalculator/serverDiffs.js" target="_blank" rel="noopener noreferrer">serverDiffs.js</a>
-          </dd>
-        </div>
-        <div class="source">
-          <dt>Cost formula</dt>
-          <dd>
-            <a href="https://strategywiki.org/wiki/MapleStory/Spell_Trace_and_Star_Force#Meso_Cost" target="_blank" rel="noopener noreferrer">StrategyWiki — Spell Trace and Star Force</a>
-          </dd>
-        </div>
-      </dl>
-    </footer>
-  </main>
-
-  <script src="rates.js"></script>
-  <script src="simulator.js"></script>
-  <script src="app.js"></script>
-</body>
+        <script src="rates.js"></script>
+        <script src="simulator.js"></script>
+        <script src="app.js"></script>
+    </body>
 </html>
