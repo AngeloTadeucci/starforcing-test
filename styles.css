@@ -612,6 +612,17 @@ the note's presence in the DOM breaks the .row + .row spacing chain. */
   color: var(--muted-2);
 }
 
+/* Boom cells with an active reduction show the old value (struck through)
+   beside the new one. Inline on desktop; stacked on mobile (see media query). */
+.boom-old {
+  text-decoration: line-through;
+  color: var(--muted-2);
+}
+
+.boom-new {
+  margin-left: 5px;
+}
+
 [data-mode-col].active-mode-col {
   background: rgba(212, 162, 89, 0.08);
 }
@@ -847,6 +858,14 @@ th[data-mode-col].active-mode-col {
   }
   .table-sub {
     font-size: 9.5px;
+  }
+  /* Stack the old/new boom values so the destroy table stays narrow enough to
+     fit without the horizontal scroll that the inline pair forced. */
+  .boom-old,
+  .boom-new {
+    display: block;
+    margin-left: 0;
+    line-height: 1.35;
   }
   .panel-head {
     padding: 11px 12px;

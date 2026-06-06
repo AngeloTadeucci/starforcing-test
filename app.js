@@ -432,7 +432,7 @@
       const star = parseInt(cell.closest("tr").cells[0].textContent);
       // Safeguard to 18: stars 15–17 always have 0% boom when safeguard is on.
       if (safeguardChecked && star >= 15 && star <= 17) {
-        cell.innerHTML = `<span style="text-decoration:line-through;color:var(--muted-2)">${base.toFixed(2)}%</span> 0%`;
+        cell.innerHTML = `<span class="boom-old">${base.toFixed(2)}%</span><span class="boom-new">0%</span>`;
         return;
       }
       // Boom reduction applies to Mode 1 always; to modes 2–3 only if the option is on.
@@ -440,7 +440,7 @@
         boomEventActive && (cell.dataset.modeCol === "1" || enhModeEvents);
       if (reduced) {
         const reducedVal = (base * 0.7).toFixed(2);
-        cell.innerHTML = `<span style="text-decoration:line-through;color:var(--muted-2)">${base.toFixed(2)}%</span> ${reducedVal}%`;
+        cell.innerHTML = `<span class="boom-old">${base.toFixed(2)}%</span><span class="boom-new">${reducedVal}%</span>`;
       } else {
         cell.textContent = base.toFixed(2) + "%";
       }
