@@ -1,6 +1,25 @@
 (function () {
   const $ = (id) => document.getElementById(id);
 
+  // Which calculator tab is showing. "quick" drives the global mode slider +
+  // safeguard checkbox; "perstar" sends a per-star plan (opts.starPlan) instead.
+  let activeTab = "quick";
+
+  // Stars where Enhancement Modes exist (15–21). Safeguard only applies to 15–17.
+  const PLAN_STARS = [15, 16, 17, 18, 19, 20, 21];
+  const PLAN_STORAGE_KEY = "sf-star-plan";
+  const TAB_STORAGE_KEY = "sf-active-tab";
+  // Default plan: safeguard 15–17, Mode 1 on 18–19, Mode 4 on 20–21.
+  const DEFAULT_PLAN = {
+    15: { mode: 1, safeguard: true },
+    16: { mode: 1, safeguard: true },
+    17: { mode: 1, safeguard: true },
+    18: { mode: 1, safeguard: false },
+    19: { mode: 1, safeguard: false },
+    20: { mode: 4, safeguard: false },
+    21: { mode: 4, safeguard: false },
+  };
+
   function fmtMesos(n) {
     if (!Number.isFinite(n)) return "—";
     const abs = Math.abs(n);
@@ -24,7 +43,7 @@
   }
 
   function readInputs() {
-    return {
+    const input = {
       itemLevel: readItemLevel(),
       currentStar: parseInt($("currentStar").value, 10),
       targetStar: parseInt($("targetStar").value, 10),
@@ -36,6 +55,9 @@
       enhanceMode: parseInt($("enhanceMode").value, 10),
       enhanceModeEvents: $("enhanceModeEvents").checked,
     };
+    // Per-star tab: a plan overrides the global mode/safeguard for stars 15–21.
+    if (activeTab === "perstar") input.starPlan = readStarPlan();
+    return input;
   }
 
   function validate(input) {
@@ -490,6 +512,145 @@
     });
   }
 
+  // ── Per-star strategy tab ───────────────────────────────────────────────
+  // Read the saved plan from localStorage, falling back to DEFAULT_PLAN for any
+  // missing/corrupt entry so a partial or stale payload can never break the page.
+  function loadPlan() {
+    let parsed = null;
+    try {
+      const raw = localStorage.getItem(PLAN_STORAGE_KEY);
+      if (raw) parsed = JSON.parse(raw);
+    } catch (e) {
+      parsed = null;
+    }
+    const plan = {};
+    PLAN_STARS.forEach((star) => {
+      const p = parsed && parsed[star];
+      plan[star] =
+        p && typeof p.mode === "number"
+          ? { mode: p.mode, safeguard: !!p.safeguard }
+          : Object.assign({}, DEFAULT_PLAN[star]);
+    });
+    return plan;
+  }
+
+  function savePlan(plan) {
+    try {
+      localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plan));
+    } catch (e) {}
+  }
+
+  // Build the live plan from the matrix controls. Safeguard only counts when it's
+  // a 15–17 star on Mode 1 (it doesn't stack on Modes 2–4), matching the engine.
+  function readStarPlan() {
+    const plan = {};
+    PLAN_STARS.forEach((star) => {
+      const sel = document.querySelector(`.plan-mode[data-star="${star}"]`);
+      const mode = sel ? parseInt(sel.value, 10) : 1;
+      const sgCb = document.querySelector(`.plan-sg[data-star="${star}"]`);
+      const safeguard = !!(sgCb && sgCb.checked && mode === 1 && star <= 17);
+      plan[star] = { mode, safeguard };
+    });
+    return plan;
+  }
+
+  function buildPlanTable() {
+    const saved = loadPlan();
+    $("plan-table-body").innerHTML = PLAN_STARS.map((star) => {
+      const p = saved[star];
+      const modeOpts = [1, 2, 3, 4]
+        .map(
+          (m) =>
+            `<option value="${m}"${m === p.mode ? " selected" : ""}>Mode ${m}</option>`,
+        )
+        .join("");
+      const sgCell =
+        star <= 17
+          ? `<input type="checkbox" class="plan-sg" data-star="${star}"${p.safeguard ? " checked" : ""} aria-label="Safeguard ${star}★" />`
+          : `<span class="num zero">—</span>`;
+      return `<tr data-star="${star}">
+        <td>${star} → ${star + 1}</td>
+        <td><select class="plan-mode" data-star="${star}" aria-label="Mode for ${star}★">${modeOpts}</select></td>
+        <td>${sgCell}</td>
+        <td class="num plan-boom-cell"></td>
+        <td class="num plan-cost-cell"></td>
+      </tr>`;
+    }).join("");
+
+    $("plan-table-body")
+      .querySelectorAll(".plan-mode, .plan-sg")
+      .forEach((el) => el.addEventListener("change", onPlanChange));
+
+    syncPlanTable();
+  }
+
+  function onPlanChange() {
+    savePlan(readStarPlan());
+    syncPlanTable();
+  }
+
+  // Refresh each row's derived UI: the safeguard checkbox is only enabled on Mode
+  // 1, and the boom%/cost columns are computed through the same engine the
+  // simulation uses. Rows outside the current → target range are greyed (off).
+  function syncPlanTable() {
+    const itemLevel = readItemLevel() || 200;
+    const current = parseInt($("currentStar").value, 10);
+    const target = parseInt($("targetStar").value, 10);
+    const baseOpts = {
+      mvp: $("mvp").value,
+      event: $("event").value,
+      starCatching: $("starCatching").checked,
+      enhanceModeEvents: $("enhanceModeEvents").checked,
+    };
+
+    PLAN_STARS.forEach((star) => {
+      const row = document.querySelector(`tr[data-star="${star}"]`);
+      if (!row) return;
+      const mode = parseInt(row.querySelector(".plan-mode").value, 10);
+      const sgCb = row.querySelector(".plan-sg");
+      if (sgCb) sgCb.disabled = mode !== 1;
+      const safeguard = !!(sgCb && sgCb.checked && mode === 1 && star <= 17);
+
+      const opts = Object.assign({ enhanceMode: mode, safeguard }, baseOpts);
+      const [, , boom] = SF.applyRateModifiers(star, opts);
+      const cost = Math.round(
+        SF.baseCost(star, itemLevel) * SF.costMultiplier(star, opts),
+      );
+
+      const boomPct = boom * 100;
+      row.querySelector(".plan-boom-cell").innerHTML =
+        `<span class="plan-boom${boomPct === 0 ? " zero" : ""}">${boomPct.toFixed(2)}%</span>`;
+      row.querySelector(".plan-cost-cell").textContent = fmtMesos(cost);
+
+      const off = !(
+        Number.isFinite(current) &&
+        Number.isFinite(target) &&
+        star >= current &&
+        star < target
+      );
+      row.classList.toggle("plan-row--off", off);
+    });
+  }
+
+  function setTab(tab) {
+    activeTab = tab === "perstar" ? "perstar" : "quick";
+    const perStar = activeTab === "perstar";
+    $("tab-quick").classList.toggle("is-active", !perStar);
+    $("tab-perstar").classList.toggle("is-active", perStar);
+    $("tab-quick").setAttribute("aria-selected", String(!perStar));
+    $("tab-perstar").setAttribute("aria-selected", String(perStar));
+    // The global mode slider + safeguard checkbox belong to the Quick tab only;
+    // the reference tables are replaced by the strategy matrix in Per-star.
+    $("enhanceModeRow").classList.toggle("hidden", perStar);
+    $("safeguardField").classList.toggle("hidden", perStar);
+    $("referencePanels").classList.toggle("hidden", perStar);
+    $("perStarPanel").classList.toggle("hidden", !perStar);
+    if (perStar) syncPlanTable();
+    try {
+      localStorage.setItem(TAB_STORAGE_KEY, activeTab);
+    } catch (e) {}
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     $("sf-form").addEventListener("submit", onSubmit);
     $("enhanceMode").addEventListener("input", () => {
@@ -518,9 +679,36 @@
       syncRateCostTable();
       syncEventNote();
     });
+    // Tabs + per-star matrix.
+    $("tab-quick").addEventListener("click", () => setTab("quick"));
+    $("tab-perstar").addEventListener("click", () => setTab("perstar"));
+    // Inputs the matrix's boom%/cost and active-range shading depend on. (The
+    // mode slider and safeguard checkbox are Quick-only and don't feed it.)
+    [
+      "event",
+      "mvp",
+      "starCatching",
+      "enhanceModeEvents",
+      "itemLevel",
+      "itemLevelCustom",
+      "currentStar",
+      "targetStar",
+    ].forEach((id) => {
+      const el = $(id);
+      const evt = el.tagName === "INPUT" && el.type === "number" ? "input" : "change";
+      el.addEventListener(evt, syncPlanTable);
+    });
+
     syncItemLevelCustom();
     syncEnhanceMode();
     syncBoomTable();
     syncEventNote();
+
+    buildPlanTable();
+    let savedTab = "quick";
+    try {
+      savedTab = localStorage.getItem(TAB_STORAGE_KEY) || "quick";
+    } catch (e) {}
+    setTab(savedTab);
   });
 })();

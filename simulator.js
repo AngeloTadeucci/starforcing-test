@@ -20,24 +20,35 @@
     return 20;
   }
 
+  // Resolve the { mode, safeguard } decision for a single star. When a per-star
+  // plan is supplied (opts.starPlan — the "Per-star" tab), each star reads its own
+  // entry; otherwise every star shares the global slider/checkbox scalars, which
+  // is the classic "Quick" tab and reproduces the original behaviour exactly.
+  function planFor(currentStar, opts) {
+    const plan = opts.starPlan && opts.starPlan[currentStar];
+    if (plan) return plan;
+    return { mode: opts.enhanceMode || 0, safeguard: !!opts.safeguard };
+  }
+
   // Returns the Enhancement Mode entry { mult, success, boom } for this star, or
   // null when the new system does not apply. Only modes 2–4 engage it (and
   // override Safeguard). Mode 0 (off) and Mode 1 both fall through to the classic
   // path - Mode 1 is 1× cost with vanilla rates, so it is identical to "off" and
   // still honours the Safeguard toggle. Stars outside 15–21 also return null.
   function enhanceEntry(currentStar, opts) {
-    const mode = opts.enhanceMode;
+    const mode = planFor(currentStar, opts).mode;
     if (!mode || mode < 2 || mode > 4) return null;
     const table = global.ENHANCE_MODE[currentStar];
     return table ? table[mode - 1] : null;
   }
 
   function applyRateModifiers(currentStar, opts) {
+    const plan = planFor(currentStar, opts);
     // Safeguard-to-18: when safeguard is checked in modes 2–4, stars 15–17
     // use the classic Mode 1 + safeguard path (boom = 0) instead of ENHANCE_MODE.
     const sgOverride =
-      opts.safeguard &&
-      (opts.enhanceMode || 0) >= 2 &&
+      plan.safeguard &&
+      (plan.mode || 0) >= 2 &&
       currentStar >= 15 &&
       currentStar <= 17;
     const em = sgOverride ? null : enhanceEntry(currentStar, opts);
@@ -74,7 +85,7 @@
       }
 
       const sgActive =
-        opts.safeguard &&
+        plan.safeguard &&
         currentStar >= 15 &&
         currentStar <= 17 &&
         !(opts.event === "fivetenfifteen" && currentStar === 15);
@@ -96,9 +107,10 @@
   }
 
   function costMultiplier(currentStar, opts) {
+    const plan = planFor(currentStar, opts);
     const sgOverride =
-      opts.safeguard &&
-      (opts.enhanceMode || 0) >= 2 &&
+      plan.safeguard &&
+      (plan.mode || 0) >= 2 &&
       currentStar >= 15 &&
       currentStar <= 17;
     const em = sgOverride ? null : enhanceEntry(currentStar, opts);
@@ -129,7 +141,7 @@
 
     if (!em) {
       const sgActive =
-        opts.safeguard &&
+        plan.safeguard &&
         currentStar >= 15 &&
         currentStar <= 17 &&
         !(opts.event === "fivetenfifteen" && currentStar === 15);
@@ -299,6 +311,7 @@
         event: input.event || "none",
         enhanceMode: input.enhanceMode || 0,
         enhanceModeEvents: !!input.enhanceModeEvents,
+        starPlan: input.starPlan || null,
       };
 
       // Typed arrays: numeric .sort() with no comparator (faster), and no GC

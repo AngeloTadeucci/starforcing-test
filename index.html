@@ -42,6 +42,27 @@
                 </p>
             </header>
 
+            <div class="tabs" role="tablist" aria-label="Calculator mode">
+                <button
+                    type="button"
+                    id="tab-quick"
+                    class="tab is-active"
+                    role="tab"
+                    aria-selected="true"
+                >
+                    Quick
+                </button>
+                <button
+                    type="button"
+                    id="tab-perstar"
+                    class="tab"
+                    role="tab"
+                    aria-selected="false"
+                >
+                    Per-star
+                </button>
+            </div>
+
             <div class="layout">
                 <form id="sf-form" class="form" novalidate>
                     <fieldset>
@@ -150,7 +171,7 @@
                             aria-live="polite"
                         ></div>
 
-                        <div class="row">
+                        <div class="row" id="enhanceModeRow">
                             <div class="slider-field">
                                 <span class="field-label"
                                     >Enhancement Mode
@@ -188,7 +209,7 @@
                                 />
                                 <span>Star catching <em class="hint">(+5% mult.)</em></span>
                             </label>
-                            <label class="check">
+                            <label class="check" id="safeguardField">
                                 <input type="checkbox" id="safeguard" checked />
                                 <span>Safeguard to 18★</span>
                             </label>
@@ -220,7 +241,7 @@
                     </div>
                 </form>
 
-                <section class="reference">
+                <section class="reference" id="referencePanels">
                     <article class="panel">
                         <header class="panel-head">
                             <span class="panel-title"
@@ -456,6 +477,38 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </article>
+                </section>
+
+                <section
+                    class="reference per-star-panel hidden"
+                    id="perStarPanel"
+                >
+                    <article class="panel">
+                        <header class="panel-head">
+                            <span class="panel-title">Per-star strategy</span>
+                            <span class="panel-unit"
+                                >mode &amp; safeguard by star</span
+                            >
+                        </header>
+                        <div class="panel-body">
+                            <table class="mode-table plan-table">
+                                <thead>
+                                    <tr>
+                                        <th>★</th>
+                                        <th>Mode</th>
+                                        <th>Safeguard</th>
+                                        <th>Boom</th>
+                                        <th>Cost</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="plan-table-body"></tbody>
+                            </table>
+                            <p class="plan-note">
+                                Each step picks its own mode. Safeguard (15–17★)
+                                only stacks on Mode 1.
+                            </p>
                         </div>
                     </article>
                 </section>
