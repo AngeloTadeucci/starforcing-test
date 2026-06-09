@@ -670,6 +670,13 @@
     $("referencePanels").classList.toggle("hidden", !quick);
     $("perStarPanel").classList.toggle("hidden", !perStar);
     $("optimizePanel").classList.toggle("hidden", !optimize);
+    // Simulation results belong to the Quick/Per-star runs; the Optimize tab
+    // can't run a sim, so any results still on screen are from a previous run
+    // under a different plan/mode. Leaving them up makes the optimizer look
+    // like it produced boom counts that contradict its own recommendation
+    // (e.g. a 0-boom Mode 4 plan next to a histogram full of booms), so clear
+    // the panel when landing here.
+    if (optimize) $("results").classList.add("hidden");
     // The form's "Run simulation" button has no clear mode to run on the
     // Optimize tab (no global slider, no plan yet), so hide it there — the
     // Optimize button + "Apply to Per-star matrix" is the path to a run.
