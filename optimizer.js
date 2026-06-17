@@ -226,7 +226,6 @@
       mvp: input.mvp || "none",
       event: input.event || "none",
       enhanceMode: input.enhanceMode || 0,
-      enhanceModeEvents: !!input.enhanceModeEvents,
       starPlan: input.starPlan || null,
     };
     const tables = SF.buildStarTables(input.targetStar, input.itemLevel, opts);

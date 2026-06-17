@@ -58,7 +58,6 @@
       starCatching: $("starCatching").checked,
       safeguard: $("safeguard").checked,
       enhanceMode: parseInt($("enhanceMode").value, 10),
-      enhanceModeEvents: $("enhanceModeEvents").checked,
     };
     // Per-star tab: a plan overrides the global mode/safeguard for stars 15–21.
     if (activeTab === "perstar") input.starPlan = readStarPlan();
@@ -356,7 +355,6 @@
               event: $("event").value,
               safeguard: $("safeguard").checked,
               starCatching: $("starCatching").checked,
-              enhanceModeEvents: $("enhanceModeEvents").checked,
             };
             const [s] = SF.applyRateModifiers(star, opts);
             const cost = Math.round(
@@ -400,116 +398,13 @@
     sg.disabled = false;
     sg.closest(".check").classList.remove("is-disabled");
 
-    syncEnhanceEventsToggle();
     syncRateCostTable();
-  }
-
-  // The experimental "apply events to enhance modes" toggle is a no-op outside
-  // Modes 2–4 with a cost- or boom-reducing event active: Mode 1 already applies
-  // events via the classic path, and stars need a discount/boom event to scale.
-  // Cost reduction can apply in Modes 2–4; boom reduction only in Modes 2–3 (Mode
-  // 4 has no boom). Grey it out and say why when it can't do anything, otherwise
-  // ticking it looks like it does nothing.
-  function syncEnhanceEventsToggle() {
-    const ev = $("event").value;
-    const costEvent = ev === "thirtyOff" || ev === "shiningStarForce";
-    const boomEvent = ev === "boomReduction" || ev === "shiningStarForce";
-
-    let usable, hintText;
-    if (activeTab === "quick") {
-      // Quick tab has a single global mode, so the toggle only does anything in
-      // modes 2–4 (cost) / 2–3 (boom) with a matching event.
-      const mode = parseInt($("enhanceMode").value, 10) || 1;
-      const affectsCost = costEvent && mode >= 2;
-      const affectsBoom = boomEvent && (mode === 2 || mode === 3);
-      usable = affectsCost || affectsBoom;
-      if (usable) hintText = "(experimental)";
-      else if (mode === 1) hintText = "(modes 2–4 only)";
-      else if (!costEvent && !boomEvent)
-        hintText = "(needs a cost or boom event)";
-      else hintText = "(no effect with this event)";
-    } else {
-      // Per-star / Optimize: there's no global mode (the slider is hidden) and a
-      // plan can use any mode per star, so the toggle is usable whenever a cost-
-      // or boom-reducing event is active.
-      usable = costEvent || boomEvent;
-      hintText = usable ? "(experimental)" : "(needs a cost or boom event)";
-    }
-
-    const cb = $("enhanceModeEvents");
-    cb.disabled = !usable;
-    cb.closest(".check").classList.toggle("is-disabled", !usable);
-
-    const hint = $("enhanceModeEventsHint");
-    if (hint) hint.textContent = hintText;
-  }
-
-  // Explains, in plain language, how the selected event interacts with the new
-  // Enhancement Modes (2–4) — the common point of confusion. Star events are only
-  // confirmed for the classic system (Mode 1); whether they carry over to the new
-  // modes is unknown, so by default they're NOT applied there. That can make a
-  // higher mode look boomier/pricier than Mode 1 with the same event, which is
-  // why the message spells out exactly what is and isn't being applied, and how
-  // the "apply events to enhance modes" toggle changes it. Nothing shows on Mode
-  // 1 (fully known) or when no cost/boom event is selected.
-  function syncEventNote() {
-    const mode = parseInt($("enhanceMode").value, 10) || 1;
-    const event = $("event").value;
-    const applied = $("enhanceModeEvents").checked;
-    const note = $("eventNote");
-
-    const isBoomEvent =
-      event === "boomReduction" || event === "shiningStarForce";
-    const isCostEvent = event === "thirtyOff" || event === "shiningStarForce";
-
-    if (mode < 2 || !(isBoomEvent || isCostEvent)) {
-      note.classList.add("hidden");
-      note.innerHTML = "";
-      return;
-    }
-
-    // Which of this event's effects could actually touch this mode?
-    // (Mode 4 has no booms, so boom reduction can't do anything there.)
-    const effects = [];
-    if (isCostEvent) effects.push("cost discount");
-    if (isBoomEvent && mode !== 4) effects.push("boom reduction");
-
-    let msg;
-    if (effects.length === 0) {
-      // Mode 4 + a boom-only event: nothing to reduce.
-      msg =
-        "This event only reduces booms, and <strong>Mode 4 never booms</strong>, " +
-        "so it has no effect here.";
-    } else if (applied) {
-      msg =
-        "<strong>Experimental — this event is being applied to Mode " +
-        mode +
-        ".</strong> Its " +
-        effects.join(" and ") +
-        " is layered on top of the new mode's rates. It isn't confirmed that star " +
-        "events carry over to Enhancement Modes, so treat these numbers as a what-if.";
-    } else {
-      msg =
-        "<strong>This event is NOT being applied to Mode " +
-        mode +
-        ".</strong> Star events are only confirmed for the classic system (Mode 1); " +
-        "it's unknown whether they carry over to the new modes, so they're left off " +
-        "by default. That's why Mode " +
-        mode +
-        " can show more booms or higher cost here than Mode 1 with the same event. " +
-        "Tick <em>“Apply event cost &amp; boom reductions to enhance modes”</em> below " +
-        "to apply it anyway (experimental).";
-    }
-
-    note.innerHTML = "<p>" + msg + "</p>";
-    note.classList.remove("hidden");
   }
 
   function syncBoomTable() {
     const ev = $("event").value;
     const boomEventActive = ev === "boomReduction" || ev === "shiningStarForce";
     const safeguardChecked = $("safeguard").checked;
-    const enhModeEvents = $("enhanceModeEvents").checked;
     document.querySelectorAll(".boom-cell").forEach((cell) => {
       const base = parseFloat(cell.dataset.base);
       const star = parseInt(cell.closest("tr").cells[0].textContent);
@@ -518,9 +413,9 @@
         cell.innerHTML = `<span class="boom-old">${base.toFixed(2)}%</span><span class="boom-new">0%</span>`;
         return;
       }
-      // Boom reduction applies to Mode 1 always; to modes 2–3 only if the option is on.
-      const reduced =
-        boomEventActive && (cell.dataset.modeCol === "1" || enhModeEvents);
+      // Boom reduction applies to every mode (confirmed: events affect the new
+      // modes too). Mode 4 has no booms, so its cells are static and not .boom-cell.
+      const reduced = boomEventActive;
       if (reduced) {
         const reducedVal = (base * 0.7).toFixed(2);
         cell.innerHTML = `<span class="boom-old">${base.toFixed(2)}%</span><span class="boom-new">${reducedVal}%</span>`;
@@ -618,7 +513,6 @@
       mvp: $("mvp").value,
       event: $("event").value,
       starCatching: $("starCatching").checked,
-      enhanceModeEvents: $("enhanceModeEvents").checked,
     };
 
     PLAN_STARS.forEach((star) => {
@@ -681,10 +575,6 @@
     // Optimize tab (no global slider, no plan yet), so hide it there — the
     // Optimize button + "Apply to Per-star matrix" is the path to a run.
     $("formActions").classList.toggle("hidden", optimize);
-    // The "apply events to enhance modes" toggle is gated differently per tab
-    // (Quick keys off the global slider; Per-star/Optimize off the event alone),
-    // so re-evaluate it whenever the active tab changes.
-    syncEnhanceEventsToggle();
     if (perStar) syncPlanTable();
     try {
       localStorage.setItem(TAB_STORAGE_KEY, activeTab);
@@ -699,7 +589,6 @@
       mvp: $("mvp").value,
       event: $("event").value,
       starCatching: $("starCatching").checked,
-      enhanceModeEvents: $("enhanceModeEvents").checked,
       enhanceMode: 0,
       safeguard: false,
     };
@@ -905,15 +794,10 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     $("sf-form").addEventListener("submit", onSubmit);
-    $("enhanceMode").addEventListener("input", () => {
-      syncEnhanceMode();
-      syncEventNote();
-    });
+    $("enhanceMode").addEventListener("input", syncEnhanceMode);
     $("event").addEventListener("change", () => {
-      syncEnhanceEventsToggle();
       syncBoomTable();
       syncRateCostTable();
-      syncEventNote();
     });
     $("mvp").addEventListener("change", syncRateCostTable);
     $("itemLevel").addEventListener("change", () => {
@@ -926,11 +810,6 @@
       syncEnhanceMode();
       syncBoomTable();
     });
-    $("enhanceModeEvents").addEventListener("change", () => {
-      syncBoomTable();
-      syncRateCostTable();
-      syncEventNote();
-    });
     // Tabs + per-star matrix.
     $("tab-quick").addEventListener("click", () => setTab("quick"));
     $("tab-perstar").addEventListener("click", () => setTab("perstar"));
@@ -942,7 +821,6 @@
       "event",
       "mvp",
       "starCatching",
-      "enhanceModeEvents",
       "itemLevel",
       "itemLevelCustom",
       "currentStar",
@@ -969,7 +847,6 @@
     syncItemLevelCustom();
     syncEnhanceMode();
     syncBoomTable();
-    syncEventNote();
 
     buildPlanTable();
     let savedTab = "quick";

@@ -60,16 +60,14 @@
       s = em.success;
       b = em.boom;
       m = 1 - s - b;
-      // Event boom reduction reaches Enhancement Mode rates only when the
-      // experimental "apply events to enhance modes" toggle is on — it's
-      // unconfirmed whether event boom reduction applies under the new system.
-      if (opts.enhanceModeEvents) {
-        const boomReductionActive =
-          opts.event === "boomReduction" || opts.event === "shiningStarForce";
-        if (boomReductionActive && currentStar <= 21) {
-          m += b * 0.3;
-          b *= 0.7;
-        }
+      // Confirmed by patch notes: star events (boom reduction here) apply to the
+      // new Enhancement Modes just as they do to the classic system, so the
+      // reduction is layered onto the mode's rates unconditionally.
+      const boomReductionActive =
+        opts.event === "boomReduction" || opts.event === "shiningStarForce";
+      if (boomReductionActive && currentStar <= 21) {
+        m += b * 0.3;
+        b *= 0.7;
       }
     } else {
       const base = global.GMS_RATES[currentStar];
@@ -122,17 +120,16 @@
       if (opts.mvp === "diamond") mult -= 0.1;
     }
     // Event cost discount (30% off — thirtyOff and shiningStarForce both grant it).
-    // The base (1×) cost is always discounted. Whether the discount also scales the
-    // Enhancement Mode premium (modes 2–4) is unconfirmed, so it's gated behind the
-    // experimental "apply events to enhance modes" toggle:
-    //   • toggle off → mult -= 0.30  (discounts the base 1× cost only:
-    //       baseCost × enhMult − 0.30 × baseCost, premium untouched)
-    //   • toggle on  → mult *= 0.70  (discounts the full enhanced cost)
-    // For Mode 1 (em null, mult = 1) both branches are identical, so it's unchanged.
+    // Confirmed by patch notes: the discount applies to the new Enhancement Modes,
+    // and a "30% off" is 30% off the cost you actually pay — i.e. the full enhanced
+    // cost — so modes 2–4 scale the whole multiplier (mult *= 0.70). This is the
+    // faithful continuation of Mode 1, where you also pay 30% less: for Mode 1
+    // (em null, mult = 1) it's identical to the classic mult -= 0.30 path, which is
+    // kept below so the safeguard premium (+2) discounts exactly as it always has.
     const costEvent =
       opts.event === "thirtyOff" || opts.event === "shiningStarForce";
     if (costEvent) {
-      if (em && opts.enhanceModeEvents) {
+      if (em) {
         mult *= 0.7;
       } else {
         mult -= 0.3;
@@ -310,7 +307,6 @@
         mvp: input.mvp || "none",
         event: input.event || "none",
         enhanceMode: input.enhanceMode || 0,
-        enhanceModeEvents: !!input.enhanceModeEvents,
         starPlan: input.starPlan || null,
       };
 
